@@ -1,6 +1,10 @@
 ﻿// ex_makeForm.cpp : 애플리케이션에 대한 진입점을 정의합니다.
 //
 
+
+/* 2021-06-19 아래 내용을 따라 해 봄 
+https://docs.microsoft.com/en-us/windows/win32/learnwin32/your-first-windows-program */
+
 #include "framework.h"
 #include "ex_makeForm.h"
 
@@ -20,14 +24,91 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 
+// Define a structure to hold some state information.
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+struct StateInfo {
+    // ... (struct members not shown)
+};
+
+
+template <class DERIVED_TYPE>
+class BaseWindow
 {
-    if (message == WM_DESTROY) PostQuitMessage(0);
+public:
+    static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+    {
+        DERIVED_TYPE* pThis = NULL;
 
-    return DefWindowProc(hWnd, message, wParam, lParam);
-}
+        if (uMsg == WM_NCCREATE)
+        {
+            CREATESTRUCT* pCreate = (CREATESTRUCT*)lParam;
+            pThis = (DERIVED_TYPE*)pCreate->lpCreateParams;
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)pThis);
 
+            pThis->m_hwnd = hwnd;
+        }
+        else
+        {
+            pThis = (DERIVED_TYPE*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+        }
+        if (pThis)
+        {
+            return pThis->HandleMessage(uMsg, wParam, lParam);
+        }
+        else
+        {
+            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+        }
+    }
+
+    BaseWindow() : m_hwnd(NULL) { }
+
+    BOOL Create(
+        PCWSTR lpWindowName,
+        PCWSTR lpszClassName,
+        DWORD dwStyle,
+        DWORD dwExStyle = 0,
+        int x = CW_USEDEFAULT,
+        int y = CW_USEDEFAULT,
+        int nWidth = CW_USEDEFAULT,
+        int nHeight = CW_USEDEFAULT,
+        HWND hWndParent = 0,
+        HMENU hMenu = 0
+    )
+    {
+        WNDCLASS wc = { 0 };
+
+        wc.lpfnWndProc = DERIVED_TYPE::WindowProc;
+        wc.hInstance = GetModuleHandle(NULL);
+        wc.lpszClassName = lpszClassName;//ClassName();
+
+        RegisterClass(&wc);
+
+        m_hwnd = CreateWindowEx(
+            dwExStyle, lpszClassName, lpWindowName, dwStyle, x, y,
+            nWidth, nHeight, hWndParent, hMenu, GetModuleHandle(NULL), this
+        );
+
+        return (m_hwnd ? TRUE : FALSE);
+    }
+
+    HWND Window() const { return m_hwnd; }
+
+protected:
+
+    //virtual PCWSTR  ClassName() const = 0;
+    virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
+
+    HWND m_hwnd;
+};
+
+
+class MainWindow : public BaseWindow<MainWindow>
+{
+public:
+    //PCWSTR  ClassName() const { return L"Sample Window Class"; }
+    LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
+};
 
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -38,11 +119,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_EXMAKEFORM, szWindowClass, MAX_LOADSTRING);
-
   
+    /*
+    MainWindow win;
+
+    if (!win.Create(szTitle, szWindowClass, WS_OVERLAPPEDWINDOW))
+    {
+        return 0;
+    }
+
+    ShowWindow(win.Window(), nCmdShow);
+    */
+    
     WNDCLASS wc = { };
 
     wc.lpfnWndProc = WndProc;
@@ -50,7 +140,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     wc.lpszClassName = szWindowClass;
 
     RegisterClass(&wc);
-
+    
     // Create the window.
     HWND hwnd = CreateWindowEx(
         0,                              // Optional window styles.
@@ -72,7 +162,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return 0;
     }
 
+
     ShowWindow(hwnd, nCmdShow);
+    
+
+
+
 
 
 
@@ -91,7 +186,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MSG msg;
 
     // 기본 메시지 루프입니다:
-    while (GetMessage(&msg, nullptr, 0, 0))
+    while (GetMessage(&msg, NULL, 0, 0))
     {
         if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
         {
@@ -151,6 +246,56 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 }
 
 
+LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
+
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(m_hwnd, &ps);
+        FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+        EndPaint(m_hwnd, &ps);
+    }
+    return 0;
+
+    default:
+        return DefWindowProc(m_hwnd, uMsg, wParam, lParam);
+    }
+    return TRUE;
+}
+
+
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if (message == WM_DESTROY) PostQuitMessage(0);
+
+    StateInfo* pState;
+
+    switch (message)
+    {
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+
+
+
+        FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+
+        EndPaint(hWnd, &ps);
+    }
+    return 0;
+
+    }
+
+    return DefWindowProc(hWnd, message, wParam, lParam);
+}
 
 
 
