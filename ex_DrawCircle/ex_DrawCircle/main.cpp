@@ -1,10 +1,14 @@
 
-#pragma warning(disable  : 28251)
-#pragma warning(disable  : 4996)
+//#pragma warning(disable  : 28251)
+//#pragma warning(disable  : 4996)
 
-#include <d2d1.h>
+#pragma
+
 #include <windows.h>
 #include <windowsx.h>
+
+#include <d2d1.h>
+
 #pragma comment(lib, "d2d1")
 #include "basewin.h"
 
@@ -175,7 +179,7 @@ void MainWindow::OnLButtonUp()
 }
 
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PWSTR, _In_ int nCmdShow)
 {
     MainWindow win;
 

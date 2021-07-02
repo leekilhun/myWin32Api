@@ -1,1 +1,3 @@
-﻿
+﻿  ex_makeForm.cpp
+E:\_Github\my_Win32Api\ex_makeForm\ex_makeForm\ex_makeForm.cpp(278,16): warning C4101: 'pState' :참조되지 않은 지역 변수입니다.
+  ex_makeForm.vcxproj -> E:\_Github\my_Win32Api\ex_makeForm\Debug\ex_makeForm.exe

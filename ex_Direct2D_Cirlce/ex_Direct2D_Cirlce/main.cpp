@@ -28,7 +28,7 @@ class MainWindow : public BaseWindow<MainWindow>
 
 public:
 
-    MainWindow() : pFactory(NULL), pRenderTarget(NULL), pBrush(NULL)
+    MainWindow() : pFactory(NULL), pRenderTarget(NULL), pBrush(NULL), ellipse()
     {
     }
 
@@ -122,7 +122,7 @@ void MainWindow::Resize()
     }
 }
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PWSTR, _In_ int nCmdShow)
 {
     MainWindow win;
 
