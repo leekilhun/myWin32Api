@@ -66,8 +66,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_LBUTTONDOWN:
 	{
+#if 0
 		HDC h_dc = GetDC(hWnd);  // 윈도우에 그림을 그리는 DC를 얻는다.
-		//HDC h_mem_dc = CreateCompatibleDC(h_dc); // h_dc와 호환되는 DC를 생성한다.
+//HDC h_mem_dc = CreateCompatibleDC(h_dc); // h_dc와 호환되는 DC를 생성한다.
 		HDC h_mem_dc = CreateCompatibleDC(NULL);// 핸들 값 대신에 NULL을 사용하더라도 현재 출력 장치와 호환되는 DC 생성해 줌
 		/*
 		//h_mem_dc와 연결된 비트맵에 사각형을 그린다. 이 그림은 화면에 출력되지 않는다.
@@ -96,12 +97,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		//메모리 h_mem_bmp의 만들어진 화면을 실제화면 (10,10)에서 시작해서 폭인 100, 높이가 110만큼 출력 
 		BitBlt(h_dc, 10, 10, 100, 100, h_mem_dc, 0, 0, SRCCOPY);
 
-		
+
 
 		DeleteObject(h_mem_bmp);//h_mem_bmp을 제거한다.
 
 		DeleteDC(h_mem_dc); //CreateCompatibleDC로 생성한 DC는 DeleteDC 함수로 제거
-		ReleaseDC(hWnd, h_dc); //  GetDC로 얻은 DC는  ReleaseDC함수로 해제
+		ReleaseDC(hWnd, h_dc); //  GetDC로 얻은 DC는  ReleaseDC함수로 해제  
+#endif // 0
+
 
 
 	}
